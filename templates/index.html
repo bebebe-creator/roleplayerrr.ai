@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Roleplay</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <!-- Auth Screen -->
+  <div id="auth-screen" class="auth-screen">
+    <div class="auth-box">
+      <h1 data-i18n="app_title">AI Roleplay</h1>
+      <div id="auth-tabs">
+        <button class="auth-tab active" data-tab="login" data-i18n="tab_login">Вход</button>
+        <button class="auth-tab" data-tab="register" data-i18n="tab_reg">Регистрация</button>
+      </div>
+      <form id="auth-form">
+        <input type="text" id="auth-username" data-i18n-placeholder="ph_username" placeholder="Имя" autocomplete="username" required minlength="3">
+        <input type="password" id="auth-password" data-i18n-placeholder="ph_password" placeholder="Пароль" autocomplete="current-password" required minlength="6">
+        <button type="submit" class="btn-primary" id="auth-submit" data-i18n="btn_login">Войти</button>
+      </form>
+      <div id="auth-error" class="auth-error"></div>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div id="app">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2 data-i18n="sidebar_title">Персонажи</h2>
+        <div class="sidebar-actions">
+          <button id="lang-toggle" class="icon-btn" title="Change Language">RU/EN</button>
+          <button id="logout-btn" class="icon-btn" title="Выйти">⏻</button>
+          <button id="theme-toggle" class="icon-btn" title="Сменить тему">☀️</button>
+          <button id="new-char-btn" class="btn-primary">+</button>
+        </div>
+      </div>
+      <ul id="char-list"></ul>
+    </aside>
+
+    <main class="main">
+      <section id="chat-view" class="view">
+        <div class="chat-header">
+          <h2 id="chat-title" data-i18n="chat_title">Выберите персонажа</h2>
+          <div class="chat-actions">
+            <button id="branches-btn" class="btn-secondary" disabled data-i18n="btn_branches">Ветки</button>
+            <button id="edit-char-btn" class="btn-secondary" disabled data-i18n="btn_edit">Изменить</button>
+            <button id="clear-chat-btn" class="btn-secondary" disabled data-i18n="btn_clear">Очистить</button>
+            <button id="delete-char-btn" class="btn-danger" disabled data-i18n="btn_delete">Удалить</button>
+          </div>
+        </div>
+        <div id="messages" class="messages">
+          <div class="empty-hint" data-i18n="hint_select">Создайте персонажа или выберите существующего</div>
+        </div>
+        <div class="input-area">
+          <textarea id="message-input" data-i18n-placeholder="ph_message" placeholder="Сообщение... (Enter — отправить, Shift+Enter — новая строка)" rows="2" disabled></textarea>
+          <button id="send-btn" class="btn-primary" disabled data-i18n="btn_send">Отправить</button>
+        </div>
+      </section>
+
+      <section id="editor-view" class="view hidden">
+        <h2 id="editor-title" data-i18n="editor_title_new">Новый персонаж</h2>
+        <form id="char-form">
+          <input type="hidden" id="char-id">
+
+          <label><span data-i18n="lbl_name">Имя персонажа *</span>
+            <input type="text" id="char-name" required data-i18n-placeholder="ph_name" placeholder="Например, Ария">
+          </label>
+
+          <label><span data-i18n="lbl_char_doc">Документ персонажа (характер, биография, внешность, речь)</span>
+            <div class="file-row">
+              <textarea id="char-doc" rows="7"></textarea>
+              <input type="file" id="char-doc-file" accept=".txt,.md,.markdown" hidden>
+              <button type="button" class="file-btn" data-target="char-doc" data-i18n="btn_file">📎 Файл</button>
+            </div>
+          </label>
+
+          <label><span data-i18n="lbl_world">Мир / лор</span>
+            <div class="file-row">
+              <textarea id="world-doc" rows="5"></textarea>
+              <input type="file" id="world-doc-file" accept=".txt,.md,.markdown" hidden>
+              <button type="button" class="file-btn" data-target="world-doc" data-i18n="btn_file">📎 Файл</button>
+            </div>
+          </label>
+
+          <label><span data-i18n="lbl_env">Окружение / сцена</span>
+            <div class="file-row">
+              <textarea id="environment" rows="4"></textarea>
+              <input type="file" id="environment-file" accept=".txt,.md,.markdown" hidden>
+              <button type="button" class="file-btn" data-target="environment" data-i18n="btn_file">📎 Файл</button>
+            </div>
+          </label>
+
+          <label><span data-i18n="lbl_npc">NPC и другие персонажи</span>
+            <div class="file-row">
+              <textarea id="npcs" rows="4"></textarea>
+              <input type="file" id="npcs-file" accept=".txt,.md,.markdown" hidden>
+              <button type="button" class="file-btn" data-target="npcs" data-i18n="btn_file">📎 Файл</button>
+            </div>
+          </label>
+
+          <label><span data-i18n="lbl_interaction">Общение с пользователем (стиль, правила, обращение)</span>
+            <div class="file-row">
+              <textarea id="user-interaction" rows="4"></textarea>
+              <input type="file" id="user-interaction-file" accept=".txt,.md,.markdown" hidden>
+              <button type="button" class="file-btn" data-target="user-interaction" data-i18n="btn_file">📎 Файл</button>
+            </div>
+          </label>
+
+          <label><span data-i18n="lbl_prompt">Системный промпт / программа общения</span>
+            <div class="file-row">
+              <textarea id="system-prompt" rows="6"></textarea>
+              <input type="file" id="system-prompt-file" accept=".txt,.md,.markdown" hidden>
+              <button type="button" class="file-btn" data-target="system-prompt" data-i18n="btn_file">📎 Файл</button>
+            </div>
+          </label>
+
+          <label><span data-i18n="lbl_prev_chat">📥 Предыдущая переписка (импорт из DeepSeek / другого чата)</span>
+            <span class="label-hint" data-i18n="hint_prev_chat">Вставьте лог или загрузите .txt/.md файл — бот будет это «помнить» как прошлый сюжет.</span>
+            <div class="file-row">
+              <textarea id="previous-chat" rows="8" placeholder="User: ...&#10;Assistant: ...&#10;User: ..."></textarea>
+              <input type="file" id="previous-chat-file" accept=".txt,.md,.markdown,.json" hidden>
+              <button type="button" class="file-btn" data-target="previous-chat" data-i18n="btn_file">📎 Файл</button>
+            </div>
+          </label>
+
+          <label><span data-i18n="lbl_temp">Температура (0.0 – 2.0)</span>
+            <input type="number" id="temperature" value="0.9" min="0" max="2" step="0.05">
+          </label>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" data-i18n="btn_save">Сохранить</button>
+            <button type="button" id="cancel-edit-btn" class="btn-secondary" data-i18n="btn_cancel">Отмена</button>
+          </div>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <div id="branches-modal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 data-i18n="modal_branches">Ветки сюжета</h3>
+        <button class="modal-close" id="branches-close">×</button>
+      </div>
+      <div class="modal-body">
+        <button id="save-branch-btn" class="btn-primary" data-i18n="btn_save_branch">💾 Сохранить текущую ветку</button>
+        <ul id="branches-list"></ul>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
