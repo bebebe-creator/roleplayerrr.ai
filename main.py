@@ -26,6 +26,10 @@ app = FastAPI(title="AI Roleplay")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
+def hash_password(password: str) -> str:
+    return pwd_ctx.hash(password[:72])
+def verify_password(password: str, hashed: str) -> bool:
+    return pwd_ctx.verify(password[:72], hashed)
 signer = URLSafeTimedSerializer(SECRET_KEY, salt="session")
 SESSION_MAX_AGE = 60 * 60 * 24 * 30
 
@@ -159,7 +163,7 @@ async def register(request: Request, response: Response):
             raise HTTPException(400, "Имя занято")
         cur.execute(
             "INSERT INTO users (username, password_hash) VALUES (%s, %s) RETURNING id",
-            (username, pwd_ctx.hash(password)),
+            (username, hash_password(password)),
         )
         uid = cur.fetchone()["id"]
         conn.commit()
@@ -174,7 +178,7 @@ async def login(request: Request, response: Response):
     with db() as conn, conn.cursor() as cur:
         cur.execute("SELECT id, password_hash FROM users WHERE username=%s", (username,))
         row = cur.fetchone()
-    if not row or not pwd_ctx.verify(password, row["password_hash"]):
+    if not row or not verify_password(password, row["password_hash"]):
         raise HTTPException(401, "Неверное имя или пароль")
     set_session(response, row["id"])
     return {"ok": True, "username": username}
